@@ -1,0 +1,63 @@
+version : "3.8"
+
+services :
+
+   backend_service :
+      image : kopiloe_backend_service
+      build :
+         context : ../backend_service
+         shm_size : 536870912
+         dockerfile : backend_production.dockerfile
+
+         labels :
+            role : "backend service"
+
+      command : 'uvicorn coffee_shop.asgi:application --host 0.0.0.0 --port 80'
+      ports :
+         - 80:80
+      networks :
+         - network_services
+
+
+   frontend_service :
+      image : kopiloe_frontend_service
+      build :
+         context : ../frontend_service
+         shm_size : 536870912
+         dockerfile : frontend_production.dockerfile
+
+         labels :
+            role : "frontend service"
+
+      command : 'php artisan serve --host=0.0.0.0 --port=80'
+      ports   : 
+         - 80:80
+
+
+   postgres_service :
+      container_name : postgres
+      image : postgres:alpine
+
+      environment :
+         - POSTGRES_USER=kopiloe
+         - POSTGRES_PASSWORD=kopiloe
+         - POSTGRES_DB=kopiloe
+
+      volumes :
+         - kopiloe_db_vol:/home/belajarqywok/volumes/kopiloe_db
+
+      ports :
+         - 5432:5432
+         
+      networks :
+         - network_services
+
+
+volumes :
+   kopiloe_db_vol :
+      external : true
+
+
+networks:
+   network_services :
+      name : network_services
